@@ -19,7 +19,7 @@ import { TodoObjectType } from './todo.object.type';
 import { TodoService } from './todo.service';
 
 @Resolver(of => TodoObjectType)
-// @UseGuards(new AuthGuardToken())
+@UseGuards(new AuthGuardToken())
 export class TodoResolver {
   constructor(
     private todoService: TodoService,
