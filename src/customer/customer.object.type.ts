@@ -1,4 +1,5 @@
 import { Field, ObjectType } from '@nestjs/graphql';
+import { IsNotEmpty, MinLength } from 'class-validator';
 
 @ObjectType('Otp')
 export class CustomerObjectType {

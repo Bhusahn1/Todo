@@ -1,4 +1,5 @@
-import { Field, ObjectType } from '@nestjs/graphql';
+import { Field, Int, ObjectType } from '@nestjs/graphql';
+import { Customer } from 'src/customer/customer.entity';
 
 @ObjectType('Todo')
 export class TodoObjectType {
@@ -10,4 +11,10 @@ export class TodoObjectType {
 
   @Field()
   status: string;
+
+  // @Field(type => [Customer])
+  // customer: Customer[];
+
+  @Field()
+  customerId: number;
 }

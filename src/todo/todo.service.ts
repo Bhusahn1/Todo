@@ -11,6 +11,7 @@ import { TodoInputType } from './todo.input';
 import { TodoObjectType } from './todo.object.type';
 import { stat } from 'fs';
 import { TodoRepository } from './todo.repository';
+import { Customer } from 'src/customer/customer.entity';
 
 @Injectable()
 export class TodoService {
@@ -19,17 +20,23 @@ export class TodoService {
     private todoRepository: TodoRepository,
   ) {}
 
+  async getTodo(id: number) {
+    const customer = await this.todoRepository.findOne({ id });
+
+    console.log('1..........', customer);
+
+    return customer;
+  }
+
   async addTask(todoInputType: TodoInputType) {
-    const { task, status } = todoInputType;
+    const { task, status, customerId } = todoInputType;
+    console.log('todoInputType............', todoInputType);
     const Todo = await this.todoRepository.create({
       task,
       status,
+      customer: customerId,
     });
     return await this.todoRepository.save(Todo);
-  }
-
-  async getTodo() {
-    return await this.todoRepository.find();
   }
 
   async updateTodo(id: number, todoInputType: TodoInputType) {

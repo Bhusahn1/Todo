@@ -1,15 +1,18 @@
 import {
+  ConflictException,
   Injectable,
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
+import { check } from 'prettier';
 import { Customer } from './customer.entity';
 import { CustomerInputType } from './customer.input';
 import { CustomerObjectType } from './customer.object.type';
 import { CustomerRepository } from './customer.repository';
 import { OtpObjectType } from './otp.input';
-
+import * as jwt from 'jsonwebtoken';
 @Injectable()
 export class CustomerService {
   constructor(
@@ -19,12 +22,22 @@ export class CustomerService {
 
   async signUp(customerInputType: CustomerInputType) {
     const { firstName, lastName, password } = customerInputType;
-    const customer = await this.cutomerRepository.create({
-      firstName,
-      lastName,
-      password,
-    });
-    return await this.cutomerRepository.save(customer);
+
+    const check = this.cutomerRepository.findOne({ firstName });
+    if (check) {
+      const customer = await this.cutomerRepository.create({
+        firstName,
+        lastName,
+        password,
+      });
+      try {
+        return await this.cutomerRepository.save(customer);
+      } catch (exception) {
+        throw exception;
+      }
+    } else {
+      throw new ConflictException('User name already exist');
+    }
   }
 
   async login(firstName: string, password: string) {
@@ -32,12 +45,26 @@ export class CustomerService {
       firstName,
       password,
     });
-    if (customer) return customer;
-    else throw new UnauthorizedException('User name or password invalid');
+    console.log('.customer...', customer);
+    if (customer) {
+      // const token = await this.jwtService.sign({ firstName });
+
+      const token = await jwt.sign({ firstName }, 'demoapp');
+      console.log('token.......', token);
+      return {
+        token,
+      };
+    } else {
+      throw new UnauthorizedException('User name or password invalid');
+    }
   }
 
-  async getCustomer() {
-    return await this.cutomerRepository.find();
+  async getCustomer(id: number) {
+    console.log('==============', this.cutomerRepository);
+
+    const customer = await this.cutomerRepository.findOne({ id });
+    console.log('==============', customer);
+    return customer;
   }
 
   async updateProfile(customerInputType: CustomerInputType) {
@@ -83,10 +110,22 @@ export class CustomerService {
   }
 
   async forgetPassword(firstName: string, otp: number, password: string) {
-    const customer = await this.cutomerRepository.findOne({ firstName, otp });
+    const customer = await this.cutomerRepository.findOne({ firstName });
     if (customer) {
-      customer.password = password;
-      return await this.cutomerRepository.save(customer);
+      if (customer.otp == otp) {
+        customer.password = password;
+        return await this.cutomerRepository.save(customer);
+      } else {
+        throw new UnauthorizedException(
+          'You are not authorized to change the password',
+        );
+      }
     }
+
+    throw new UnauthorizedException(
+      'You are not authorized to change the password',
+    );
   }
 }
+
+// Nestjs , TypeORM , PostgreSQL, and GraphQL
